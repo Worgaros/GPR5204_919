@@ -27,9 +27,11 @@ SOFTWARE.
 #include <functional>
 #include <queue>
 
+
+
 // Queue who sort the element from lowest to higher.
-template<typename T, typename priority_t>
-class PriorityQueue {
+/*template<typename T, typename priority_t>
+class InvertedPriorityQueue {
 public:
 	typedef std::pair<priority_t, T> PQElement;
 	std::priority_queue<PQElement, std::vector<PQElement>,
@@ -51,5 +53,5 @@ public:
 		elements.pop();
 		return best_item;
 	}
-
-};
+	// std vector nodeindex float + methode put heap
+};*/

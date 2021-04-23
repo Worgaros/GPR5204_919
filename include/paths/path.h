@@ -29,61 +29,57 @@ SOFTWARE.
 #include "maths/vector2.h"
 
 namespace path {
-	
-using NodeIndex = std::uint32_t;
 
-// This class is used to represent a node.
-class Node {
-public:
-	Node() = default;
-	Node(maths::Vector2f position, std::vector<NodeIndex> neighbors) {
-		position_ = position;
-		neighbors_ = neighbors;
-	}
+	using NodeIndex = std::uint32_t;
 
-	// This function returns the neighbors of a node.
-	const std::vector<NodeIndex>& neighbors() const {
-		return neighbors_;
-	}
+	// This class is used to represent a node.
+	class Node {
+	public:
+		Node() = default;
+		Node(maths::Vector2f position, std::vector<NodeIndex> neighbors) {
+			position_ = position;
+			neighbors_ = neighbors;
+		}
 
-	// This function returns the position of a node.
-	const maths::Vector2f position() const {
-		return position_;
-	}
+		// This function returns the neighbors of a node.
+		const std::vector<NodeIndex>& neighbors() const {
+			return neighbors_;
+		}
 
-	Node& operator=(Node node) {
-		position_ = node.position_;
-		neighbors_ = node.neighbors_;
-		return *this;
-	}
-private:
-	std::vector<NodeIndex> neighbors_;
-	maths::Vector2f position_;
-};
+		// This function returns the position of a node.
+		const maths::Vector2f position() const {
+			return position_;
+		}
 
-// This class is used to represent a map.
-class Map {
-public:
-	Map() = default;
-	// This function push a node in graph_.
-	void AddNode(const Node& node) {
-		graph_.push_back(node);
-	}
-	// This function find the lowest cost path with A* from the start node to the last node.
-	std::vector<NodeIndex> FindPath(NodeIndex start_node, NodeIndex end_node);
-	void Reset() {
-		graph_.clear();
-		path_.clear();
-		came_from_.clear();
-		cost_so_far_.clear();
-	}
-private:
-	std::vector<Node> graph_;
-	std::vector<NodeIndex> path_;
-	// The node with the lowest cost to go to the key node.
-	std::map<NodeIndex, NodeIndex> came_from_;
-	// The lowest cost to go to a node.
-	std::map<NodeIndex, float> cost_so_far_;
-};
+		Node& operator=(Node node) {
+			position_ = node.position_;
+			neighbors_ = node.neighbors_;
+			return *this;
+		}
+	private:
+		std::vector<NodeIndex> neighbors_;
+		maths::Vector2f position_;
+	};
+
+	// This class is used to represent a map.
+	class Map {
+	public:
+		Map() = default;
+		// This function push a node in graph_. // take ownership
+		void AddNode(Node&& node) {
+			graph_.emplace_back(node);
+		}
+		// This function find the lowest cost path with A* from the start node to the last node.
+		std::vector<NodeIndex> FindPath(NodeIndex start_node, NodeIndex end_node);
+		void Reset() {
+			graph_.clear();
+			path_.clear();
+			came_from_.clear();
+			cost_so_far_.clear();
+		}
+	private:
+		std::vector<Node> graph_;
+		std::vector<NodeIndex> path_;
+	};
 
 }  // namespace path

@@ -28,101 +28,103 @@ SOFTWARE.
 
 namespace path {
 
-TEST(Astar, Map_FindPath) {
-	// A test with 2 nodes and 1 path.
-	// Create node0.
-	Node node0(maths::Vector2f(0.0f, 0.0f), {1});
-	// Create node1.
-	Node node1(maths::Vector2f(1.0f, 0.0f), {0});
-	// Instantiate map.
-	Map map;
-	// Create expected path.
-	std::vector<NodeIndex> expected_path{0, 1};
-	// Add node0 in graph.
-	map.AddNode(node0);
-	// Add node1 in graph.
-	map.AddNode(node1);
-	// Find the lowest cost path.
-	std::vector<NodeIndex> path = map.FindPath(0, 1);
-	// Check if the path is the same as the expected path.
-	EXPECT_TRUE(std::equal(path.begin(), path.end(), expected_path.begin()));
-	// Reverse the expected path.
-	std::reverse(expected_path.begin(), expected_path.end());
-	// Check if the path is not the same as the expected path.
-	EXPECT_FALSE(std::equal(path.begin(), path.end(), expected_path.begin()));
+	using InvertedPriorityQueue = std::priority_queue<std::pair<NodeIndex, float>>;
 
-	// A test with 5 nodes and 2 path going into 1 path.
-	node0 = Node(maths::Vector2f(0.0f, 0.0f), {1, 3});
-	node1 = Node(maths::Vector2f(2.0f, 2.0f), {0, 2});
-	Node node2(maths::Vector2f(5.0f, 2.0f), {1, 3, 4});
-	Node node3(maths::Vector2f(4.0f, -2.0f), {0, 2});
-	Node node4(maths::Vector2f(8.0f, 0.0f), {2});
-	map.Reset();
-	expected_path = {0, 1, 2, 4};
-	map.AddNode(node0);
-	map.AddNode(node1);
-	map.AddNode(node2);
-	map.AddNode(node3);
-	map.AddNode(node4);
-	path = map.FindPath(0, 4);
-	EXPECT_TRUE(std::equal(path.begin(), path.end(), expected_path.begin()));
-	std::reverse(expected_path.begin(), expected_path.end());
-	EXPECT_FALSE(std::equal(path.begin(), path.end(), expected_path.begin()));
+	TEST(Astar, Map_FindPath) {
+		// A test with 2 nodes and 1 path.
+		// Create node0.
+		Node node0(maths::Vector2f(0.0f, 0.0f), { 1 });
+		// Create node1.
+		Node node1(maths::Vector2f(1.0f, 0.0f), { 0 });
+		// Instantiate map.
+		Map map;
+		// Create expected path.
+		std::vector<NodeIndex> expected_path{ 0, 1 };
+		// Add node0 in graph.
+		map.AddNode(std::move(node0));
+		// Add node1 in graph.
+		map.AddNode(std::move(node1));
+		// Find the lowest cost path.
+		std::vector<NodeIndex> path = map.FindPath(0, 1);
+		// Check if the path is the same as the expected path.
+		EXPECT_TRUE(std::equal(path.begin(), path.end(), expected_path.begin()));
+		// Reverse the expected path.
+		std::reverse(expected_path.begin(), expected_path.end());
+		// Check if the path is not the same as the expected path.
+		EXPECT_FALSE(std::equal(path.begin(), path.end(), expected_path.begin()));
 
-	// A test with 5 node and 2 path.
-	node0 = Node(maths::Vector2f(0.0f, 0.0f), {1, 3});
-	node1 = Node(maths::Vector2f(0.5f, 1.0f), {0, 2});
-	node2 = Node(maths::Vector2f(1.5f, 1.0f), {1, 4});
-	node3 = Node(maths::Vector2f(1.0f, -1.0f), {0, 4});
-	node4 = Node(maths::Vector2f(2.0f, 0.0f), {2, 3});
-	map.Reset();
-	expected_path = { 0, 3, 4 };
-	map.AddNode(node0);
-	map.AddNode(node1);
-	map.AddNode(node2);
-	map.AddNode(node3);
-	map.AddNode(node4);
-	path = map.FindPath(0, 4);
-	EXPECT_TRUE(std::equal(path.begin(), path.end(), expected_path.begin()));
-	std::reverse(expected_path.begin(), expected_path.end());
-	EXPECT_FALSE(std::equal(path.begin(), path.end(), expected_path.begin()));
+		// A test with 5 nodes and 2 path going into 1 path.
+		node0 = Node(maths::Vector2f(0.0f, 0.0f), { 1, 3 });
+		node1 = Node(maths::Vector2f(2.0f, 2.0f), { 0, 2 });
+		Node node2(maths::Vector2f(5.0f, 2.0f), { 1, 3, 4 });
+		Node node3(maths::Vector2f(4.0f, -2.0f), { 0, 2 });
+		Node node4(maths::Vector2f(8.0f, 0.0f), { 2 });
+		map.Reset(); // mettre automatique dans path /////////////////////////////////////////////////////////
+		expected_path = { 0, 1, 2, 4 };
+		map.AddNode(std::move(node0));
+		map.AddNode(std::move(node1));
+		map.AddNode(std::move(node2));
+		map.AddNode(std::move(node3));
+		map.AddNode(std::move(node4));
+		path = map.FindPath(0, 4);
+		EXPECT_TRUE(std::equal(path.begin(), path.end(), expected_path.begin()));
+		std::reverse(expected_path.begin(), expected_path.end());
+		EXPECT_FALSE(std::equal(path.begin(), path.end(), expected_path.begin()));
 
-	// A test with 5 nodes and 0 path.
-	node0 = Node(maths::Vector2f(0.0f, 0.0f), {1, 2});
-	node1 = Node(maths::Vector2f(3.0f, 2.0f), {0, 2});
-	node2 = Node(maths::Vector2f(4.0f, -1.0f), {0, 1, 3});
-	node3 = Node(maths::Vector2f(5.0f, 2.0f), {3});
-	node4 = Node(maths::Vector2f(8.0f, 1.0f), {});
-	map.Reset();
-	std::vector<NodeIndex> empty_path;
-	map.AddNode(node0);
-	map.AddNode(node1);
-	map.AddNode(node2);
-	map.AddNode(node3);
-	map.AddNode(node4);
-	path = map.FindPath(0, 4);
-	EXPECT_TRUE(std::equal(path.begin(), path.end(), empty_path.begin()));
-}
+		// A test with 5 node and 2 path.
+		node0 = Node(maths::Vector2f(0.0f, 0.0f), { 1, 3 });
+		node1 = Node(maths::Vector2f(0.5f, 1.0f), { 0, 2 });
+		node2 = Node(maths::Vector2f(1.5f, 1.0f), { 1, 4 });
+		node3 = Node(maths::Vector2f(1.0f, -1.0f), { 0, 4 });
+		node4 = Node(maths::Vector2f(2.0f, 0.0f), { 2, 3 });
+		map.Reset();
+		expected_path = { 0, 3, 4 };
+		map.AddNode(std::move(node0));
+		map.AddNode(std::move(node1));
+		map.AddNode(std::move(node2));
+		map.AddNode(std::move(node3));
+		map.AddNode(std::move(node4));
+		path = map.FindPath(0, 4);
+		EXPECT_TRUE(std::equal(path.begin(), path.end(), expected_path.begin()));
+		std::reverse(expected_path.begin(), expected_path.end());
+		EXPECT_FALSE(std::equal(path.begin(), path.end(), expected_path.begin()));
 
-TEST(Astar, Astar_PriorityQueue) {
-	// Check if the queue is empty.
-	PriorityQueue<NodeIndex, float> queue;
-	EXPECT_TRUE(queue.empty());
+		// A test with 5 nodes and 0 path.
+		node0 = Node(maths::Vector2f(0.0f, 0.0f), { 1, 2 });
+		node1 = Node(maths::Vector2f(3.0f, 2.0f), { 0, 2 });
+		node2 = Node(maths::Vector2f(4.0f, -1.0f), { 0, 1, 3 });
+		node3 = Node(maths::Vector2f(5.0f, 2.0f), { 3 });
+		node4 = Node(maths::Vector2f(8.0f, 1.0f), {});
+		map.Reset();
+		std::vector<NodeIndex> empty_path;
+		map.AddNode(std::move(node0));
+		map.AddNode(std::move(node1));
+		map.AddNode(std::move(node2));
+		map.AddNode(std::move(node3));
+		map.AddNode(std::move(node4));
+		path = map.FindPath(0, 4);
+		EXPECT_TRUE(std::equal(path.begin(), path.end(), empty_path.begin()));
+	}
 
-	// A test to put an element in the queue.
-	NodeIndex node_index = 1;
-	NodeIndex node_index_2 = 2;
-	float priority = 2.0f;
-	float priority_2 = 1.0f;
-	queue.put(node_index, priority);
-	EXPECT_TRUE(queue.get() == node_index);
-	queue.put(node_index, priority);
-	EXPECT_FALSE(queue.get() == node_index_2);
+	TEST(Astar, Astar_PriorityQueue) {
+		// Check if the queue is empty.
+		InvertedPriorityQueue queue;
+		EXPECT_TRUE(queue.empty());
 
-	// A test to get the lowest element.
-	queue.put(node_index, priority);
-	queue.put(node_index_2, priority_2);
-	EXPECT_TRUE(queue.get() == node_index_2);
-}
+		// A test to put an element in the queue.
+		NodeIndex node_index = 1;
+		NodeIndex node_index_2 = 2;
+		float priority = 2.0f;
+		float priority_2 = 1.0f;
+		queue.emplace(node_index, priority);
+		EXPECT_TRUE(queue.top() == node_index);
+		queue.emplace(node_index, priority);
+		EXPECT_FALSE(queue.top() == node_index_2);
+
+		// A test to get the lowest element.
+		queue.emplace(node_index, priority);
+		queue.emplace(node_index_2, priority_2);
+		EXPECT_TRUE(queue.top() == node_index_2);
+	}
 
 }  // namespace astar
