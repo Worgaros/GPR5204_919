@@ -23,14 +23,13 @@ SOFTWARE.
 */
 
 #include "paths/path.h"
-#include "paths/inverted_priority_queue.h"
 
 namespace path {
 
-	using InvertedPriorityQueue = std::priority_queue<std::pair<NodeIndex, float>>;
 
 	std::vector<NodeIndex> Map::FindPath(NodeIndex start_node, NodeIndex end_node) {
-
+		path_.clear();
+		path_.reserve(graph_.size());
 		// This queue contains next nodes where we will check these neighbors.
 		InvertedPriorityQueue frontier;
 		frontier.emplace(start_node, 0.0f);
@@ -43,10 +42,12 @@ namespace path {
 		came_from_[start_node] = start_node;
 		cost_so_far_[start_node] = 0.0f;
 		NodeIndex current;
-
+		
 		while (!frontier.empty()) {
+			auto tmp = frontier.top();
+			frontier.pop();
 			// Get the lowest priority node.
-			current = frontier.top();
+			current = tmp.first;
 
 			if (current == end_node) {
 				break;
@@ -99,3 +100,85 @@ namespace path {
 	}
 
 }  // namespace path
+
+
+namespace path2 {
+
+
+	std::vector<NodeIndex> Map::FindPath(NodeIndex start_node, NodeIndex end_node) {
+		path_.clear();
+		path_.reserve(graph_.size());
+		cost_so_far_.resize(graph_.size(), -1.0f);
+		came_from_.resize(graph_.size(), INVALID_NODE_INDEX);
+		// This queue contains next nodes where we will check these neighbors.
+		InvertedPriorityQueue frontier;
+		frontier.emplace(start_node, 0.0f);
+
+		
+
+		came_from_[start_node] = start_node;
+		cost_so_far_[start_node] = 0.0f;
+		NodeIndex current;
+
+		while (!frontier.empty()) {
+			auto tmp = frontier.top();
+			frontier.pop();
+			// Get the lowest priority node.
+			current = tmp.first;
+
+			if (current == end_node) {
+				break;
+			}
+
+			for (NodeIndex next : graph_[current].neighbors()) {
+				if(next == INVALID_NODE_INDEX)
+				{
+					break;
+				}
+				// The cost to get to the current node added to the distance to the neighbor.
+				const float new_cost = cost_so_far_[current]
+					+ maths::Vector2f{
+						graph_[current].position().x
+						- graph_[next].position().x
+						, graph_[current].position().y
+						- graph_[next].position().y }.Magnitude();
+				/* Check if the node has been checked and if cost to go to the next
+				node from current is less than the lowest cost saved to go to the
+				next node.*/
+				if (cost_so_far_[next] < 0.0f
+					|| new_cost < cost_so_far_[next]) {
+					// Put the new lowest cost to go to next node.
+					cost_so_far_[next] = new_cost;
+					// Calculate the heuristic.
+					const float priority = new_cost
+						+ maths::Vector2f{
+							graph_[next].position().x
+							- graph_[end_node].position().x
+							, graph_[next].position().y
+							- graph_[end_node].position().y }.Magnitude();
+					// Add to nodes where we will check these neighbors.
+					frontier.emplace(next, priority);
+					/* Save the current node with the lowest cost to go to the next
+					node. */
+					came_from_[next] = current;
+				}
+			}
+		}
+		/* Return an empty vector of NodeIndex if there is no path to go to the end
+		node.*/
+		if (current != end_node) {
+			std::vector<NodeIndex> no_path_vector;
+			return no_path_vector;
+		}
+		// Add NodeIndex of nodes with the lowest cost to go to each node.
+		path_.push_back(current);
+		while (current != start_node) {
+			current = came_from_[current];
+			path_.push_back(current);
+		}
+		// Reverse path to start with the start node.
+		return { path_.rbegin(), path_.rend() };
+	}
+
+}  // namespace path
+
